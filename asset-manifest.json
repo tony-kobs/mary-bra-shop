@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/mary-bra-shop/static/css/main.54a76da4.css",
+    "main.js": "/mary-bra-shop/static/js/main.8753289c.js",
+    "index.html": "/mary-bra-shop/index.html",
+    "main.54a76da4.css.map": "/mary-bra-shop/static/css/main.54a76da4.css.map",
+    "main.8753289c.js.map": "/mary-bra-shop/static/js/main.8753289c.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.54a76da4.css",
+    "static/js/main.8753289c.js"
+  ]
+}

@@ -1,0 +1,261 @@
+.items-wrapper {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 28px;
+  padding: 30px 0;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #fff;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+  transition:
+    transform 0.35s ease,
+    box-shadow 0.35s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.item:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
+}
+
+.item-image-wrap {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: #f8f6f4;
+}
+
+.item-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.item:hover .item-image {
+  transform: scale(1.05);
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 20px 20px 22px;
+}
+
+.item-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f1f1f;
+  margin-bottom: 10px;
+  line-height: 1.35;
+  min-height: 48px;
+}
+
+.item-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #6b6b6b;
+  margin-bottom: 18px;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  min-height: 67px;
+}
+
+.item-bottom {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.item-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--price-color);
+  letter-spacing: 0.3px;
+}
+
+.item-btn {
+  border: none;
+  background: linear-gradient(
+    135deg,
+    var(--btn-gradient-color1),
+    var(--btn-gradient-color2)
+  );
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.item-btn:hover {
+  transform: scale(1.03);
+}
+
+.show-full-item {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+
+.full-item-wrapper {
+  width: 90%;
+  max-width: 1000px;
+  background: #fff;
+  border-radius: 24px;
+  overflow: hidden;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+  animation: scaleIn 0.3s ease;
+}
+
+/* ЛІВА ЧАСТИНА (КАРТИНКА) */
+.full-item-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #f8f6f4;
+  cursor: zoom-in;
+  transition: transform 0.4s ease;
+}
+
+.full-item-wrapper img:hover {
+  transform: scale(1.05);
+}
+
+/* ПРАВА ЧАСТИНА (ІНФА) */
+.full-item-wrapper h2 {
+  font-size: 26px;
+  font-weight: 600;
+  margin: 30px 30px 10px;
+  color: #111;
+}
+
+.full-item-wrapper p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #6b6b6b;
+  margin: 0 30px 20px;
+}
+
+.full-item-wrapper b {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 30px 20px;
+  color: var(--price-color);
+}
+
+/* КНОПКА */
+.add-to-cart {
+  margin: 0 30px 30px;
+  padding: 14px;
+  border: none;
+  border-radius: 999px;
+
+  background: linear-gradient(
+    135deg,
+    var(--btn-gradient-color1),
+    var(--btn-gradient-color2)
+  );
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.add-to-cart:hover {
+  transform: scale(1.04);
+}
+
+/* АНІМАЦІЇ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 📱 MOBILE */
+@media (max-width: 767px) {
+  .items-wrapper {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .item-title {
+    font-size: 16px;
+  }
+
+  .item-desc {
+    font-size: 13px;
+  }
+
+  .full-item-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .full-item-wrapper img {
+    height: 300px;
+  }
+}
+
+/* 📲 TABLET */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .items-wrapper {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 💻 1280 */
+@media (min-width: 1280px) {
+  .items-wrapper {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

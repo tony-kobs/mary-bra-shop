@@ -1,13 +1,222 @@
-body {
+@import url("https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+* {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul {
+  list-style: none;
+}
+
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+:root {
+  --btn-gradient-color1: #59382c;
+  --btn-gradient-color2: #926251;
+  --price-color: #1da810;
+  --transition: 0.5s ease;
+  --red-color: #cf1111;
+  --peony-color: #f4c9d6;
+  --capuccino-color: #59382c;
+  --licorice-color: #1e151c;
+  --primary-color: #db7093;
+  --text-color: #3e2723;
+  --background-color: #ffecda;
+  --font-family: "Montserrat", sans-serif;
+  --secondary-font-family: "Great Vibes", cursive;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: 0.11em;
+}
+
+.container {
+  width: 100%;
+  max-width: 1440px;
+  padding: 0 20px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+@import url("./css/header.css");
+@import url("./css/categories.css");
+@import url("./css/items.css");
+@import url("./css/footer.css");
+@import url("./css/presentation-bar.css");
+
+.floating-cart {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  background: var(--capuccino-color);
+  color: var(--peony-color);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition:
+    color,
+    transform var(--transition);
+}
+
+.floating-cart:hover {
+  transform: scale(1.2);
+}
+
+.floating-cart svg {
+  color: var(--peony-color);
+  width: 24px;
+  height: 24px;
+  transition:
+    color,
+    transform var(--transition);
+}
+
+.floating-cart:hover svg {
+  color: var(--primary-color);
+  transform: scale(1.2);
+}
+
+.floating-cart .cart-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* .swiper img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+}
+ */
+.banner-swiper {
+  width: 100%;
+  max-width: 1440px;
+  border-radius: 20px;
+  margin: 0 auto 40px;
+}
+
+.banner-slide {
+  width: 100%;
+  height: 600px;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.banner-slide img {
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  object-fit: cover;
+  display: block;
+}
+
+.zoom {
+  animation: zoomEffect 8s ease-in-out infinite;
+}
+
+@keyframes zoomEffect {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.1);
+  }
+}
+
+/* ============================= */
+/* 📱 MOBILE (до 767px) */
+/* ============================= */
+@media (max-width: 767px) {
+  .container {
+    width: 100%;
+    padding: 0 15px;
+  }
+
+  .banner-slide {
+    height: 300px;
+  }
+
+  .floating-cart {
+    width: 45px;
+    height: 45px;
+  }
+}
+
+/* ============================= */
+/* 📲 TABLET (768px - 1023px) */
+/* ============================= */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .container {
+    width: 100%;
+    padding: 0 20px;
+  }
+
+  .banner-slide {
+    height: 400px;
+  }
+}
+
+/* ============================= */
+/* 💻 SMALL DESKTOP (1024px - 1279px) */
+/* ============================= */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .container {
+    width: 100%;
+    max-width: 1100px;
+  }
+}
+
+/* ============================= */
+/* 💻 1280px */
+/* ============================= */
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .container {
+    width: 100%;
+    max-width: 1280px;
+  }
+}
+
+/* ============================= */
+/* 🖥 1440px+ */
+/* ============================= */
+@media (min-width: 1440px) {
+  .container {
+    width: 1440px;
+  }
 }

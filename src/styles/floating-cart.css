@@ -1,0 +1,61 @@
+.floating-cart {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  background: var(--capuccino-color);
+  color: var(--peony-color);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition:
+    color,
+    transform var(--transition);
+}
+
+.floating-cart:hover {
+  transform: scale(1.2);
+}
+
+.floating-cart svg {
+  color: var(--peony-color);
+  width: 24px;
+  height: 24px;
+  transition:
+    color,
+    transform var(--transition);
+}
+
+.floating-cart:hover svg {
+  color: var(--primary-color);
+  transform: scale(1.2);
+}
+
+.floating-cart .cart-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+@media (max-width: 767px) {
+  .floating-cart {
+    width: 45px;
+    height: 45px;
+  }
+}

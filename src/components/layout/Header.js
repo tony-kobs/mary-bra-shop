@@ -8,7 +8,7 @@ import { FaFacebook } from "react-icons/fa6";
 import { FaRegCircleXmark } from "react-icons/fa6";
 import { FaMagnifyingGlass } from "react-icons/fa6";
 
-import Order from "./Order";
+import Order from "../cart/Order";
 
 export default function Header(props) {
   const isCartOpen = props.cartOpen;

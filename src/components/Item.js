@@ -3,7 +3,7 @@ import React, { Component } from "react";
 export class Item extends Component {
   render() {
     return (
-      <div className="item">
+      <div className="item" id="items-section">
         <div className="item-image-wrap">
           <img
             src={

@@ -33,21 +33,6 @@ header {
   border-radius: 2px;
 }
 
-/* .navbar::after {
-  content: "";
-  position: absolute;
-  bottom: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-
-  width: 70%;
-  height: 3px;
-
-  background: #c97f98;
-  filter: blur(1px);
-  opacity: 0.8;
-} */
-
 .logo {
   font-family: var(--secondary-font-family);
   font-size: 30px;
@@ -87,6 +72,75 @@ header {
   background-color: var(--capuccino-color);
   border-color: var(--peony-color);
   transform: scale(1.1);
+}
+
+.nav-item-search {
+  margin-left: 25px;
+  position: relative;
+  overflow: visible;
+  float: right;
+  transition:
+    width 0.4s ease,
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.3s ease;
+}
+
+.search-toggle {
+  background: none;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.search-field {
+  position: absolute;
+  right: 50px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition:
+    width 0.4s ease,
+    opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 200px;
+  height: 36px;
+  padding: 6px 12px;
+  font-size: 14px;
+  border: 1px solid var(--peony-color);
+  border-radius: 8px;
+  background-color: var(--background-color, #fff);
+  color: var(--text-color);
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.search-input::placeholder {
+  color: var(--muted-color, #aaa);
+}
+
+.search-input:focus {
+  border-color: var(--primary-color);
+}
+
+/* Active state — show input */
+.nav-item-search.search-active,
+.nav-item-search:hover,
+.nav-item-search:focus-within {
+  width: auto;
+}
+
+.nav-item-search.search-active .search-field,
+.nav-item-search:hover .search-field,
+.nav-item-search:focus-within .search-field {
+  width: 210px;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .nav-links {
@@ -255,33 +309,6 @@ header {
   font-size: 16px;
   font-weight: 700;
 }
-
-/* header .presentation {
-  font-size: 18px;
-  color: var(--text-color);
-  background: url(/src/img/robo-model1.png) no-repeat;
-  background-size: cover;
-  background-position: center;
-  background-blend-mode: multiply;
-  background-color: #f5f5f5;
-  border-radius: 15px;
-  box-shadow: 4px 8px 12px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  height: 600px;
-  position: relative;
-}
-
-header .presentation::after {
-  content: "";
-  background: url("/public/content-img/balaloum-logo.png") no-repeat center
-    center/cover;
-  position: absolute;
-  width: 135px;
-  height: 70px;
-  bottom: 40px;
-  left: 40px;
-}
- */
 
 /* 📱 MOBILE */
 @media (max-width: 767px) {

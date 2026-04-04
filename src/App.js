@@ -78,6 +78,8 @@ class App extends React.Component {
     this.onShowItem = this.onShowItem.bind(this);
     this.cartRef = React.createRef();
     this.scrollToHeader = this.scrollToHeader.bind(this);
+    this.handleSearch = this.handleSearch.bind(this);
+    this.scrollToItems = this.scrollToItems.bind(this);
   }
 
   componentDidMount() {
@@ -96,6 +98,31 @@ class App extends React.Component {
     });
   };
 
+  handleSearch(query) {
+    this.setState({ searchQuery: query });
+
+    if (!query.trim()) {
+      this.setState({ currentItems: this.state.items });
+      return;
+    }
+
+    const lowerQuery = query.toLowerCase();
+    this.setState({
+      currentItems: this.state.items.filter(
+        (item) =>
+          item.title.toLowerCase().includes(lowerQuery) ||
+          item.desc.toLowerCase().includes(lowerQuery),
+      ),
+    });
+  }
+
+  scrollToItems() {
+    const section = document.getElementById("items-section");
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
   render() {
     const totalQuantity = this.state.orders.reduce(
       (sum, order) => sum + (order.quantity || 1),
@@ -108,6 +135,8 @@ class App extends React.Component {
           onDelete={this.deleteOrder}
           cartOpen={this.state.cartOpen}
           setCartOpen={(value) => this.setState({ cartOpen: value })}
+          onSearch={this.handleSearch}
+          onSearchSubmit={this.scrollToItems}
         />
         <main>
           <PresentationBar />

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { FaBagShopping } from "react-icons/fa6";
 import { FaTiktok } from "react-icons/fa6";
 import { FaViber } from "react-icons/fa6";
@@ -6,25 +6,61 @@ import { FaInstagram } from "react-icons/fa6";
 import { FaTelegram } from "react-icons/fa6";
 import { FaFacebook } from "react-icons/fa6";
 import { FaRegCircleXmark } from "react-icons/fa6";
+import { FaMagnifyingGlass } from "react-icons/fa6";
 
 import Order from "./Order";
 
 export default function Header(props) {
-  /* const [isCartOpen, setIsCartOpen] = React.useState(false); */
   const isCartOpen = props.cartOpen;
   const setIsCartOpen = props.setCartOpen;
   const cartRef = useRef(null);
+  const searchRef = useRef(null);
+  const searchInputRef = useRef(null);
+
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (cartRef.current && !cartRef.current.contains(e.target)) {
         setIsCartOpen(false);
       }
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setIsSearchActive(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [setIsCartOpen]);
+
+  useEffect(() => {
+    if (isSearchActive && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearchActive]);
+
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    if (props.onSearch) {
+      props.onSearch(query);
+    }
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+
+    if (props.onSearch) {
+      props.onSearch(searchQuery);
+    }
+
+    if (props.onSearchSubmit) {
+      props.onSearchSubmit();
+    }
+
+    setSearchQuery("");
+  };
 
   const shownOrders = () => {
     const summa = props.orders.reduce(
@@ -59,7 +95,29 @@ export default function Header(props) {
         <a href="/" className="logo">
           MaryBra Shop
         </a>
+
         <ul className="nav-list">
+          <li
+            className={`nav-item nav-item-search ${isSearchActive ? "search-active" : ""}`}
+            ref={searchRef}
+          >
+            <button
+              className="nav-links search-toggle"
+              onClick={() => setIsSearchActive((prev) => !prev)}
+            >
+              <FaMagnifyingGlass className="nav-icons" />
+            </button>
+            <form className="search-field" onSubmit={handleSearchSubmit}>
+              <input
+                ref={searchInputRef}
+                type="text"
+                className="search-input"
+                placeholder="Пошук товарів..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
+            </form>
+          </li>
           <li className="nav-item">
             <a
               href="/products"
@@ -111,6 +169,7 @@ export default function Header(props) {
             </a>
           </li>
         </ul>
+
         <button className="shop-cart-button">
           <FaBagShopping
             onClick={() => setIsCartOpen((prev) => !prev)}

@@ -10,7 +10,9 @@ export class ShowFullItem extends Component {
       >
         <div className="full-item-wrapper" onClick={(e) => e.stopPropagation()}>
           <img
-            src={"./product-img/" + this.props.item.image}
+            src={
+              process.env.PUBLIC_URL + "/product-img/" + this.props.item.image
+            }
             alt={this.props.item.title}
             onClick={() => this.props.onShowItem(null)}
           />

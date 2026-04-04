@@ -42,6 +42,13 @@ header {
   color: var(--primary-color);
 }
 
+.nav-list-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 25px;
+}
+
 .nav-list {
   display: flex;
   align-items: center;
@@ -78,7 +85,6 @@ header {
   margin-left: 25px;
   position: relative;
   overflow: visible;
-  float: right;
   transition:
     width 0.4s ease,
     background-color 0.3s ease,

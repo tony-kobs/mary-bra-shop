@@ -20,6 +20,24 @@ class App extends React.Component {
           title: "Трусики Бразилійки Acousma",
           desc: "Трусики бразилійки Acousma з високою посадкою та мереживом. Виготовлені з м'якого матеріалу, що забезпечує комфорт протягом усього дня. Ідеально підходять для повсякденного носіння та особливих випадків.",
           category: "pants",
+          colors: {
+            black: {
+              label: "Чорний",
+              hex: "#111111",
+              images: ["item1.jpg", "item1-2.jpg"],
+            },
+            white: {
+              label: "Білий",
+              hex: "#f5f5f5",
+              images: ["item1-white.jpg"],
+            },
+          },
+          sizes: [
+            { value: "M", available: true },
+            { value: "L", available: true },
+            { value: "XL", available: false },
+            { value: "XXL", available: false },
+          ],
           price: 220,
           image: "item1.jpg",
         },
@@ -28,6 +46,23 @@ class App extends React.Component {
           title: "Балконет Acousma",
           desc: "Балконет Acousma з високою посадкою та мереживом. Виготовлені з м'якого матеріалу, що забезпечує комфорт протягом усього дня. Ідеально підходять для повсякденного носіння та особливих випадків.",
           category: "bras",
+          colors: {
+            black: {
+              label: "Чорний",
+              hex: "#111111",
+              images: ["item2.jpg", "item2-2.jpg"],
+            },
+            white: {
+              label: "Білий",
+              hex: "#f5f5f5",
+              images: ["item2-white.jpg"],
+            },
+          },
+          sizes: [
+            { value: "S", available: true },
+            { value: "M", available: true },
+            { value: "L", available: true },
+          ],
           price: 750,
           image: "item2.jpg",
         },
@@ -36,7 +71,23 @@ class App extends React.Component {
           title: "Гіпюрові трусики від Acousma",
           desc: "Гіпюрові трусики від Acousma з високою посадкою та мереживом. Виготовлені з м'якого матеріалу, що забезпечує комфорт протягом усього дня. Ідеально підходять для повсякденного носіння та особливих випадків.",
           category: "pants",
-
+          colors: {
+            black: {
+              label: "Чорний",
+              hex: "#111111",
+              images: ["item3.jpg", "item3-2.jpg"],
+            },
+            white: {
+              label: "Білий",
+              hex: "#f5f5f5",
+              images: ["item3-white.jpg"],
+            },
+          },
+          sizes: [
+            { value: "S", available: true },
+            { value: "M", available: true },
+            { value: "L", available: true },
+          ],
           price: 250,
           image: "item3.jpg",
         },
@@ -45,6 +96,23 @@ class App extends React.Component {
           title: "Комплект без паралону з портупеєю",
           desc: "Комплект без паралону з портупеєю. Ідеально підходять для повсякденного носіння та особливих випадків.",
           category: "sets",
+          colors: {
+            black: {
+              label: "Чорний",
+              hex: "#111111",
+              images: ["item4.jpg", "item4-2.jpg"],
+            },
+            white: {
+              label: "Білий",
+              hex: "#f5f5f5",
+              images: ["item4-white.jpg"],
+            },
+          },
+          sizes: [
+            { value: "S", available: true },
+            { value: "M", available: true },
+            { value: "L", available: true },
+          ],
           price: 950,
           image: "item4.jpg",
         },
@@ -53,6 +121,23 @@ class App extends React.Component {
           title: "Останні штуки❤️",
           desc: "Останні штуки❤️. Ідеально підходять для повсякденного носіння та особливих випадків.",
           category: "sets",
+          colors: {
+            black: {
+              label: "Чорний",
+              hex: "#111111",
+              images: ["item5.jpg", "item5-2.jpg"],
+            },
+            white: {
+              label: "Білий",
+              hex: "#f5f5f5",
+              images: ["item5-white.jpg"],
+            },
+          },
+          sizes: [
+            { value: "S", available: true },
+            { value: "M", available: true },
+            { value: "L", available: true },
+          ],
           price: 950,
           image: "item5.jpg",
         },
@@ -61,6 +146,23 @@ class App extends React.Component {
           title: "Бюстгальтер на формованій чашці мереживний від Acousma❤️",
           desc: "Бюстгальтер на формованій чашці мереживний від Acousma❤️. Ідеально підходять для повсякденного носіння та особливих випадків.",
           category: "bras",
+          colors: {
+            black: {
+              label: "Чорний",
+              hex: "#111111",
+              images: ["item6.jpg", "item6-2.jpg"],
+            },
+            white: {
+              label: "Білий",
+              hex: "#f5f5f5",
+              images: ["item6-white.jpg"],
+            },
+          },
+          sizes: [
+            { value: "S", available: true },
+            { value: "M", available: true },
+            { value: "L", available: true },
+          ],
           price: 750,
           image: "item6.jpg",
         },
@@ -195,11 +297,19 @@ class App extends React.Component {
   }
 
   addToOrder(item) {
-    const existing = this.state.orders.find((order) => order.id === item.id);
+    const existing = this.state.orders.find(
+      (order) =>
+        order.id === item.id &&
+        order.selectedColor === item.selectedColor &&
+        order.selectedSize === item.selectedSize,
+    );
+
     if (existing) {
       this.setState({
         orders: this.state.orders.map((order) =>
-          order.id === item.id
+          order.id === item.id &&
+          order.selectedColor === item.selectedColor &&
+          order.selectedSize === item.selectedSize
             ? { ...order, quantity: (order.quantity || 1) + 1 }
             : order,
         ),

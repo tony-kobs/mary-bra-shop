@@ -9,8 +9,8 @@ export default function HeaderSearch({ onSearch, onSearchSubmit }) {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    if (isSearchActive && searchInputRef.current) {
-      searchInputRef.current.focus();
+    if (isSearchActive) {
+      searchInputRef.current?.focus();
     }
   }, [isSearchActive]);
 
@@ -22,28 +22,27 @@ export default function HeaderSearch({ onSearch, onSearchSubmit }) {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
+
+  const handleToggleSearch = () => {
+    setIsSearchActive((prev) => !prev);
+  };
 
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
-
-    if (onSearch) {
-      onSearch(query);
-    }
+    onSearch?.(query);
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
 
-    if (onSearch) {
-      onSearch(searchQuery);
-    }
-
-    if (onSearchSubmit) {
-      onSearchSubmit();
-    }
+    onSearch?.(searchQuery);
+    onSearchSubmit?.();
 
     setSearchQuery("");
   };
@@ -56,7 +55,8 @@ export default function HeaderSearch({ onSearch, onSearchSubmit }) {
       <button
         type="button"
         className="nav-links search-toggle"
-        onClick={() => setIsSearchActive((prev) => !prev)}
+        onClick={handleToggleSearch}
+        aria-label="Відкрити пошук"
       >
         <FaMagnifyingGlass className="nav-icons" />
       </button>

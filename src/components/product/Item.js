@@ -1,36 +1,30 @@
-import React, { Component } from "react";
+import React from "react";
 
-export class Item extends Component {
-  render() {
-    return (
-      <div className="item" id="items-section">
-        <div className="item-image-wrap">
-          <img
-            src={
-              process.env.PUBLIC_URL + "/product-img/" + this.props.item.image
-            }
-            alt={this.props.item.title}
-            className="item-image"
-            onClick={() => this.props.onShowItem(this.props.item)}
-          />
-        </div>
-        <div className="item-info">
-          <h3 className="item-title">{this.props.item.title}</h3>
-          <div className="item-bottom">
-            <span className="item-price">
-              {this.props.item.price.toFixed(2)} ₴
-            </span>
-            <button
-              className="item-btn"
-              onClick={() => this.props.onAdd(this.props.item)}
-            >
-              Додати в кошик
-            </button>
-          </div>
+export default function Item({ item, onAdd, onShowItem }) {
+  const { image, title, price } = item;
+
+  return (
+    <div className="item" id="items-section">
+      <div className="item-image-wrap">
+        <img
+          src={`${process.env.PUBLIC_URL}/product-img/${image}`}
+          alt={title}
+          className="item-image"
+          onClick={() => onShowItem(item)}
+        />
+      </div>
+
+      <div className="item-info">
+        <h3 className="item-title">{title}</h3>
+
+        <div className="item-bottom">
+          <span className="item-price">{price.toFixed(2)} ₴</span>
+
+          <button className="item-btn" onClick={() => onAdd(item)}>
+            Додати в кошик
+          </button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 }
-
-export default Item;

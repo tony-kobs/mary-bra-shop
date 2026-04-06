@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FaMagnifyingGlass } from "react-icons/fa6";
 
-export default function HeaderSearch({ onSearch, onSearchSubmit }) {
+export default function HeaderSearch({ onSearchSubmit }) {
   const searchRef = useRef(null);
   const searchInputRef = useRef(null);
 
@@ -33,18 +33,16 @@ export default function HeaderSearch({ onSearch, onSearchSubmit }) {
   };
 
   const handleSearchChange = (e) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    onSearch?.(query);
+    setSearchQuery(e.target.value);
   };
 
-  const handleSearchSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    onSearch?.(searchQuery);
-    onSearchSubmit?.();
+    onSearchSubmit?.(searchQuery);
 
     setSearchQuery("");
+    setIsSearchActive(false);
   };
 
   return (
@@ -61,7 +59,7 @@ export default function HeaderSearch({ onSearch, onSearchSubmit }) {
         <FaMagnifyingGlass className="nav-icons" />
       </button>
 
-      <form className="search-field" onSubmit={handleSearchSubmit}>
+      <form className="search-field" onSubmit={handleSubmit}>
         <input
           ref={searchInputRef}
           type="text"

@@ -2,18 +2,31 @@ import React from "react";
 import { FaRegCircleXmark } from "react-icons/fa6";
 import Order from "./Order";
 
+function calculateTotalPrice(orders) {
+  return orders.reduce((total, order) => {
+    const price = Number.parseFloat(order.price) || 0;
+    const quantity = order.quantity || 1;
+
+    return total + price * quantity;
+  }, 0);
+}
+
 export default function CartDropdown({ orders, onDelete, onClose }) {
-  const totalPrice = orders.reduce(
-    (acc, order) =>
-      acc + Number.parseFloat(order.price) * (order.quantity || 1),
-    0,
-  );
+  const totalPrice = calculateTotalPrice(orders);
 
   if (orders.length === 0) {
     return (
       <div className="empty-cart">
         <p>Корзина пуста</p>
-        <FaRegCircleXmark onClick={onClose} />
+
+        <button
+          type="button"
+          className="close-cart-btn"
+          onClick={onClose}
+          aria-label="Закрити кошик"
+        >
+          <FaRegCircleXmark />
+        </button>
       </div>
     );
   }

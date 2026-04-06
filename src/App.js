@@ -59,21 +59,13 @@ class App extends React.Component {
           onDelete={this.deleteOrder}
           cartOpen={cartOpen}
           setCartOpen={this.setCartOpen}
-          onSearch={this.handleSearch}
-          onSearchSubmit={this.scrollToItems}
+          onSearchSubmit={this.handleSearchSubmit}
         />
         <main>
           <PresentationBar />
           <BannerSliders />
-          <Categories
-            onChoose={this.chooseCategory}
-            onChooseSubcategory={this.chooseSubcategory}
-          />
-          <Items
-            items={currentItems}
-            onAdd={this.addToOrder}
-            onShowItem={this.onShowItem}
-          />
+          <Categories onChoose={this.handleCategoryFilter} />
+          <Items items={currentItems} onShowItem={this.onShowItem} />
         </main>
 
         {showItemModal}
@@ -139,46 +131,63 @@ class App extends React.Component {
 
   //============================Search and filtering methods============================//
 
-  handleSearch = (query) => {
-    const { items } = this.state;
-    const lowerQuery = query.trim().toLowerCase();
+  handleSearchSubmit = (query) => {
+    const normalizedQuery = query.trim().toLowerCase();
 
-    this.setState({ searchQuery: query });
-
-    if (!lowerQuery) {
-      this.setState({ currentItems: this.state.items });
+    if (!normalizedQuery) {
+      this.setState(
+        {
+          currentItems: this.state.items,
+        },
+        this.scrollToItems,
+      );
       return;
     }
 
-    this.setState({
-      currentItems: items.filter(
-        (item) =>
-          item.title.toLowerCase().includes(lowerQuery) ||
-          item.desc.toLowerCase().includes(lowerQuery),
-      ),
+    const filteredItems = this.state.items.filter((item) => {
+      const title = item.title?.toLowerCase() || "";
+      const shortDescription = item.shortDescription?.toLowerCase() || "";
+      const description = item.description?.toLowerCase() || "";
+      const brand = item.brand?.toLowerCase() || "";
+      const sku = item.sku?.toLowerCase() || "";
+
+      return (
+        title.includes(normalizedQuery) ||
+        shortDescription.includes(normalizedQuery) ||
+        description.includes(normalizedQuery) ||
+        brand.includes(normalizedQuery) ||
+        sku.includes(normalizedQuery)
+      );
     });
+
+    this.setState(
+      {
+        currentItems: filteredItems,
+      },
+      this.scrollToItems,
+    );
   };
 
-  chooseCategory = (category) => {
+  handleCategoryFilter = (category, subcategory = null) => {
     const { items } = this.state;
+
     if (category === "all") {
       this.setState({ currentItems: items });
       return;
     }
 
+    if (subcategory && !subcategory.startsWith("all-")) {
+      this.setState({
+        currentItems: items.filter(
+          (item) =>
+            item.category === category && item.subcategory === subcategory,
+        ),
+      });
+      return;
+    }
+
     this.setState({
       currentItems: items.filter((item) => item.category === category),
-    });
-  };
-
-  chooseSubcategory = (category, subcategory) => {
-    const { items } = this.state;
-
-    this.setState({
-      currentItems: items.filter(
-        (item) =>
-          item.category === category && item.subcategory === subcategory,
-      ),
     });
   };
 
@@ -211,11 +220,15 @@ class App extends React.Component {
     });
   };
 
-  deleteOrder = (id) => {
+  deleteOrder = (id, selectedColor, selectedSize) => {
     this.setState((prevState) => ({
       orders: prevState.orders
         .map((order) =>
-          order.id === id ? { ...order, quantity: order.quantity - 1 } : order,
+          order.id === id &&
+          order.selectedColor === selectedColor &&
+          order.selectedSize === selectedSize
+            ? { ...order, quantity: order.quantity - 1 }
+            : order,
         )
         .filter((order) => order.quantity > 0),
     }));

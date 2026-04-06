@@ -6,13 +6,18 @@ export default function Order({ item, onDelete }) {
     id,
     image,
     title,
+    brand,
     price,
     quantity = 1,
     selectedColor,
     selectedSize,
+    colors,
   } = item;
 
   const totalPrice = (price * quantity).toFixed(2);
+
+  const colorLabel =
+    (selectedColor && colors?.[selectedColor]?.label) || selectedColor;
 
   const handleDelete = () => {
     onDelete(id, selectedColor, selectedSize);
@@ -30,12 +35,16 @@ export default function Order({ item, onDelete }) {
 
       <div className="order-item-info">
         <div className="order-item-top">
-          <h3 className="order-item-title">
-            {title}
-            {quantity > 1 && (
-              <span className="order-item-qty">×{quantity}</span>
-            )}
-          </h3>
+          <div className="order-item-text">
+            {brand && <span className="order-item-brand">{brand}</span>}
+
+            <h3 className="order-item-title">
+              {title}
+              {quantity > 1 && (
+                <span className="order-item-qty">×{quantity}</span>
+              )}
+            </h3>
+          </div>
 
           <button
             type="button"
@@ -48,10 +57,9 @@ export default function Order({ item, onDelete }) {
         </div>
 
         <div className="order-item-meta">
-          {selectedColor && (
-            <span className="order-badge">Колір: {selectedColor}</span>
+          {colorLabel && (
+            <span className="order-badge">Колір: {colorLabel}</span>
           )}
-
           {selectedSize && (
             <span className="order-badge">Розмір: {selectedSize}</span>
           )}

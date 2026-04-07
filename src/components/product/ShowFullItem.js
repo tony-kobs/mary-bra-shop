@@ -1,296 +1,343 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { FaCheck, FaXmark } from "react-icons/fa6";
 import { Navigation, Pagination } from "swiper/modules";
-import { FaXmark } from "react-icons/fa6";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-function getFirstAvailableSize(item) {
-  if (!item?.sizes?.length) return null;
+function normalizeSizes(sizes) {
+  if (!Array.isArray(sizes)) return [];
 
-  const firstAvailable = item.sizes.find((size) =>
-    typeof size === "string" ? true : size.available,
-  );
+  return sizes.map((size) => {
+    if (typeof size === "string") {
+      return {
+        value: size,
+        label: size,
+        inStock: true,
+      };
+    }
 
-  if (!firstAvailable) return null;
-
-  return typeof firstAvailable === "string"
-    ? firstAvailable
-    : firstAvailable.value;
-}
-
-function getColorKeys(item) {
-  return item?.colors ? Object.keys(item.colors) : [];
-}
-
-function getCurrentImages(item, activeColorKey) {
-  if (item?.colors?.[activeColorKey]?.images?.length) {
-    return item.colors[activeColorKey].images;
-  }
-
-  if (item?.image) {
-    return [item.image];
-  }
-
-  return [];
+    return {
+      value: size.value || size.label || size.size || "",
+      label: size.label || size.value || size.size || "",
+      inStock: size.inStock !== false,
+    };
+  });
 }
 
 export default function ShowFullItem({ item, onAdd, onShowItem }) {
-  const colorKeys = useMemo(() => getColorKeys(item), [item]);
-  const firstColor = colorKeys[0] || null;
+  const colorEntries = useMemo(
+    () => Object.entries(item?.colors || {}),
+    [item?.colors],
+  );
 
-  const [selectedColor, setSelectedColor] = useState(firstColor);
-  const [previewColor, setPreviewColor] = useState(null);
-  const [selectedSize, setSelectedSize] = useState(getFirstAvailableSize(item));
+  const defaultColorKey = colorEntries[0]?.[0] || null;
+
+  const [activeColor, setActiveColor] = useState(defaultColorKey);
+  const [selectedSize, setSelectedSize] = useState("");
+  const [showSizeError, setShowSizeError] = useState(false);
+  const [showAddedMessage, setShowAddedMessage] = useState(false);
 
   useEffect(() => {
-    if (!item) return;
-
-    const nextColorKeys = getColorKeys(item);
-    const nextFirstColor = nextColorKeys[0] || null;
-
-    setSelectedColor(nextFirstColor);
-    setPreviewColor(null);
-    setSelectedSize(getFirstAvailableSize(item));
+    const nextDefaultColor = Object.keys(item?.colors || {})[0] || null;
+    setActiveColor(nextDefaultColor);
+    setSelectedSize("");
+    setShowSizeError(false);
+    setShowAddedMessage(false);
   }, [item]);
 
   useEffect(() => {
-    const handleEsc = (e) => {
+    document.body.style.overflow = "hidden";
+
+    const handleEscape = (e) => {
       if (e.key === "Escape") {
         onShowItem(null);
       }
     };
 
-    document.addEventListener("keydown", handleEsc);
-    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleEscape);
 
     return () => {
-      document.removeEventListener("keydown", handleEsc);
       document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleEscape);
     };
   }, [onShowItem]);
 
+  useEffect(() => {
+    if (!showAddedMessage) return;
+
+    const timer = setTimeout(() => {
+      setShowAddedMessage(false);
+    }, 1800);
+
+    return () => clearTimeout(timer);
+  }, [showAddedMessage]);
+
   if (!item) return null;
 
-  const activeColorKey = previewColor || selectedColor;
-  const currentImages = getCurrentImages(item, activeColorKey);
+  const {
+    title,
+    brand,
+    price,
+    oldPrice,
+    description,
+    shortDescription,
+    badges,
+    image,
+    inStock = true,
+  } = item;
 
-  const activeColorData = item.colors?.[selectedColor];
-  const activeColorLabel = activeColorData?.label || selectedColor || "—";
+  const activeColorData =
+    (activeColor && item.colors?.[activeColor]) || colorEntries[0]?.[1] || null;
 
-  const handleColorChange = (color) => {
-    setSelectedColor(color);
-    setPreviewColor(null);
-  };
-
-  const handleSizeChange = (sizeObj) => {
-    const sizeValue = typeof sizeObj === "string" ? sizeObj : sizeObj.value;
-    const available = typeof sizeObj === "string" ? true : sizeObj.available;
-
-    if (!available) return;
-
-    setSelectedSize(sizeValue);
-  };
+  const colorLabel = activeColorData?.label || activeColor || "";
+  const images = activeColorData?.images || (image ? [image] : []);
+  const normalizedSizes = normalizeSizes(item.sizes);
+  const hasSizes = normalizedSizes.length > 0;
+  const hasDiscount = typeof oldPrice === "number" && oldPrice > price;
 
   const handleAddToCart = () => {
-    const activeColor = item.colors?.[selectedColor];
-    const activeImage = activeColor?.images?.[0] || item.image || "";
+    if (hasSizes && !selectedSize) {
+      setShowSizeError(true);
+      return;
+    }
+
+    setShowSizeError(false);
 
     onAdd({
       ...item,
-      selectedColor,
-      selectedSize,
-      image: activeImage,
+      selectedColor: activeColor,
+      selectedColorLabel: colorLabel,
+      selectedSize: selectedSize || null,
+      previewImage: images[0] || image || "",
     });
+
+    setShowAddedMessage(true);
   };
 
-  const formattedPrice =
-    typeof item.price === "number"
-      ? `${item.price.toFixed(2)} грн`
-      : `${item.price} грн`;
-
-  const formattedOldPrice =
-    typeof item.oldPrice === "number"
-      ? `${item.oldPrice.toFixed(2)} грн`
-      : null;
-
-  const hasDiscount =
-    typeof item.oldPrice === "number" && item.oldPrice > item.price;
-
   return (
-    <div className="show-full-item" onClick={() => onShowItem(null)}>
-      <div className="full-item-wrapper" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="show-full-item-backdrop"
+      onClick={() => onShowItem(null)}
+      role="presentation"
+    >
+      <div
+        className="show-full-item-modal"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+      >
         <button
           type="button"
-          className="full-item-close"
+          className="show-full-item-close"
           onClick={() => onShowItem(null)}
           aria-label="Закрити"
         >
           <FaXmark />
         </button>
 
-        <div className="full-item-image-container">
-          {currentImages.length > 0 ? (
-            <Swiper
-              modules={[Navigation, Pagination]}
-              slidesPerView={1}
-              spaceBetween={0}
-              navigation
-              pagination={{ clickable: true }}
-              className="full-item-swiper"
-            >
-              {currentImages.map((img, index) => (
-                <SwiperSlide key={index}>
-                  <img
-                    src={`${process.env.PUBLIC_URL}/product-img/${img}`}
-                    alt={item.title}
-                    className="full-item-main-image"
-                  />
-                </SwiperSlide>
-              ))}
-            </Swiper>
-          ) : (
-            <div className="full-item-no-image">Немає зображення</div>
-          )}
-        </div>
-
-        <div className="full-item-info">
-          <div className="full-item-head">
-            <div className="full-item-brand-row">
-              {item.brand && (
-                <span className="full-item-brand">{item.brand}</span>
+        <div className="show-full-item-grid">
+          <div className="show-full-item-gallery">
+            <div className="show-full-item-badges">
+              {badges?.isSale && (
+                <span className="show-full-item-badge show-full-item-badge-sale">
+                  Sale
+                </span>
               )}
-              {item.sku && (
-                <span className="full-item-sku">SKU: {item.sku}</span>
+              {badges?.isNew && (
+                <span className="show-full-item-badge show-full-item-badge-new">
+                  New
+                </span>
+              )}
+              {badges?.isTop && (
+                <span className="show-full-item-badge show-full-item-badge-top">
+                  Top
+                </span>
+              )}
+              {!inStock && (
+                <span className="show-full-item-badge show-full-item-badge-out">
+                  Sold out
+                </span>
               )}
             </div>
 
-            <h2>{item.title || "Без назви"}</h2>
-
-            <div className="full-item-price-row">
-              {hasDiscount && (
-                <span className="full-item-old-price">{formattedOldPrice}</span>
-              )}
-              <b>{formattedPrice}</b>
-            </div>
-
-            {item.shortDescription && (
-              <p className="full-item-short-description">
-                {item.shortDescription}
-              </p>
-            )}
-          </div>
-
-          <div className="full-item-content">
-            <div className="options">
-              <h4>Опис</h4>
-              <p>{item.description || "Опис відсутній"}</p>
-            </div>
-
-            {colorKeys.length > 0 && (
-              <div className="options">
-                <div className="option-header">
-                  <h4>Колір</h4>
-                  <span className="option-value">{activeColorLabel}</span>
-                </div>
-
-                <div className="colors">
-                  {colorKeys.map((colorKey) => {
-                    const colorData = item.colors[colorKey];
-                    const colorHex = colorData?.hex || "#ccc";
-                    const colorLabel = colorData?.label || colorKey;
-                    const isActive = selectedColor === colorKey;
-
-                    return (
-                      <button
-                        key={colorKey}
-                        type="button"
-                        className={`color-swatch ${isActive ? "active" : ""}`}
-                        style={{ backgroundColor: colorHex }}
-                        title={colorLabel}
-                        aria-label={colorLabel}
-                        onClick={() => handleColorChange(colorKey)}
-                        onMouseEnter={() => setPreviewColor(colorKey)}
-                        onMouseLeave={() => setPreviewColor(null)}
+            {images.length > 1 ? (
+              <Swiper
+                modules={[Navigation, Pagination]}
+                navigation
+                pagination={{ clickable: true }}
+                spaceBetween={12}
+                slidesPerView={1}
+                autoHeight={false}
+                observer={true}
+                observeParents={true}
+                updateOnWindowResize={true}
+                className="show-full-item-swiper"
+              >
+                {images.map((img, index) => (
+                  <SwiperSlide key={`${img}-${index}`}>
+                    <div className="show-full-item-image-wrap">
+                      <img
+                        src={`${process.env.PUBLIC_URL}/product-img/${img}`}
+                        alt={`${title} ${index + 1}`}
+                        className="show-full-item-image"
+                        loading="eager"
+                        decoding="async"
                       />
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {item.sizes?.length > 0 && (
-              <div className="options">
-                <div className="option-header">
-                  <h4>Розмір</h4>
-                  <span className="option-value">
-                    {selectedSize || "Оберіть"}
-                  </span>
-                </div>
-
-                <div className="sizes">
-                  {item.sizes.map((sizeObj) => {
-                    const sizeValue =
-                      typeof sizeObj === "string" ? sizeObj : sizeObj.value;
-                    const available =
-                      typeof sizeObj === "string" ? true : sizeObj.available;
-                    const isActive = selectedSize === sizeValue;
-
-                    return (
-                      <button
-                        key={sizeValue}
-                        type="button"
-                        className={`size ${isActive ? "active" : ""} ${
-                          !available ? "disabled" : ""
-                        }`}
-                        onClick={() => handleSizeChange(sizeObj)}
-                        disabled={!available}
-                      >
-                        {sizeValue}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {(item.composition || item.care) && (
-              <div className="full-item-details">
-                {item.composition && (
-                  <div className="full-item-detail-block">
-                    <h5>Склад</h5>
-                    <p>{item.composition}</p>
-                  </div>
-                )}
-
-                {item.care && (
-                  <div className="full-item-detail-block">
-                    <h5>Догляд</h5>
-                    <p>{item.care}</p>
-                  </div>
-                )}
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            ) : (
+              <div className="show-full-item-image-wrap">
+                <img
+                  src={`${process.env.PUBLIC_URL}/product-img/${
+                    images[0] || image
+                  }`}
+                  alt={title}
+                  className="show-full-item-image"
+                  loading="eager"
+                  decoding="async"
+                />
               </div>
             )}
           </div>
 
-          <div className="full-item-footer">
-            <div className="full-item-selection">
-              <span>Обрано:</span>
-              <strong>
-                {activeColorLabel}
-                {selectedSize ? ` / ${selectedSize}` : ""}
-              </strong>
+          <div className="show-full-item-content">
+            <div className="show-full-item-head">
+              {brand && <span className="show-full-item-brand">{brand}</span>}
+
+              <h2 className="show-full-item-title">{title}</h2>
+
+              {shortDescription && (
+                <p className="show-full-item-short">{shortDescription}</p>
+              )}
+
+              <div className="show-full-item-price-wrap">
+                {hasDiscount && (
+                  <span className="show-full-item-old-price">
+                    {oldPrice.toFixed(2)} ₴
+                  </span>
+                )}
+
+                <div className="show-full-item-price-row">
+                  <span className="show-full-item-price">
+                    {price.toFixed(2)} ₴
+                  </span>
+
+                  {hasDiscount && (
+                    <span className="show-full-item-discount-note">
+                      Спеціальна ціна
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
 
-            <button
-              className="add-to-cart"
-              onClick={handleAddToCart}
-              disabled={!selectedSize || item.inStock === false}
-            >
-              {item.inStock === false ? "Немає в наявності" : "Додати в кошик"}
-            </button>
+            {colorEntries.length > 0 && (
+              <div className="show-full-item-block">
+                <div className="show-full-item-block-head">
+                  <span className="show-full-item-block-label">Колір</span>
+                  {colorLabel && (
+                    <span className="show-full-item-block-value">
+                      {colorLabel}
+                    </span>
+                  )}
+                </div>
+
+                <div className="show-full-item-colors">
+                  {colorEntries.map(([colorKey, colorValue]) => (
+                    <button
+                      key={colorKey}
+                      type="button"
+                      className={`show-full-item-color ${
+                        activeColor === colorKey ? "active" : ""
+                      }`}
+                      style={{ backgroundColor: colorValue.hex }}
+                      onClick={() => setActiveColor(colorKey)}
+                      onMouseEnter={() => setActiveColor(colorKey)}
+                      aria-label={colorValue.label || colorKey}
+                      title={colorValue.label || colorKey}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {hasSizes && (
+              <div className="show-full-item-block">
+                <div className="show-full-item-block-head">
+                  <span className="show-full-item-block-label">Розмір</span>
+                  {selectedSize && (
+                    <span className="show-full-item-block-value">
+                      {selectedSize}
+                    </span>
+                  )}
+                </div>
+
+                <div className="show-full-item-sizes">
+                  {normalizedSizes.map((size) => (
+                    <button
+                      key={size.value}
+                      type="button"
+                      className={`show-full-item-size ${
+                        selectedSize === size.value ? "active" : ""
+                      } ${!size.inStock ? "disabled" : ""}`}
+                      onClick={() => {
+                        if (!size.inStock) return;
+                        setSelectedSize(size.value);
+                        setShowSizeError(false);
+                      }}
+                      disabled={!size.inStock}
+                    >
+                      {size.label}
+                    </button>
+                  ))}
+                </div>
+
+                {showSizeError && (
+                  <span className="show-full-item-error">
+                    Будь ласка, обери розмір
+                  </span>
+                )}
+              </div>
+            )}
+
+            {description && (
+              <div className="show-full-item-description">
+                <span className="show-full-item-block-label">Опис</span>
+                <p>{description}</p>
+              </div>
+            )}
+
+            <div className="show-full-item-actions">
+              <button
+                type="button"
+                className="show-full-item-add-btn"
+                onClick={handleAddToCart}
+                disabled={!inStock}
+              >
+                {inStock ? "Додати в кошик" : "Немає в наявності"}
+              </button>
+
+              <button
+                type="button"
+                className="show-full-item-secondary-btn"
+                onClick={() => onShowItem(null)}
+              >
+                Продовжити перегляд
+              </button>
+            </div>
+
+            {showAddedMessage && (
+              <div className="show-full-item-success">
+                <FaCheck />
+                <span>Товар додано в кошик</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

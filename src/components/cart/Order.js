@@ -5,19 +5,25 @@ export default function Order({ item, onDelete }) {
   const {
     id,
     image,
+    previewImage,
     title,
     brand,
     price,
     quantity = 1,
     selectedColor,
+    selectedColorLabel,
     selectedSize,
     colors,
   } = item;
 
-  const totalPrice = (price * quantity).toFixed(2);
+  const totalPrice = ((Number(price) || 0) * quantity).toFixed(2);
 
   const colorLabel =
-    (selectedColor && colors?.[selectedColor]?.label) || selectedColor;
+    selectedColorLabel ||
+    (selectedColor && colors?.[selectedColor]?.label) ||
+    selectedColor;
+
+  const displayImage = previewImage || image;
 
   const handleDelete = () => {
     onDelete(id, selectedColor, selectedSize);
@@ -27,9 +33,11 @@ export default function Order({ item, onDelete }) {
     <div className="order-item">
       <div className="order-item-image-wrap">
         <img
-          src={`${process.env.PUBLIC_URL}/product-img/${image}`}
+          src={`${process.env.PUBLIC_URL}/product-img/${displayImage}`}
           alt={title}
           className="order-item-image"
+          loading="lazy"
+          decoding="async"
         />
       </div>
 

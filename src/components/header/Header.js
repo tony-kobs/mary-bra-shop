@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React from "react";
 import CartDropdown from "../cart/CartDropDown";
 import HeaderSearch from "./HeaderSearch";
 import HeaderSocials from "./HeaderSocials";
@@ -13,26 +13,10 @@ export default function Header({
   onSearch,
   onSearchSubmit,
 }) {
-  const cartRef = useRef(null);
-
   const totalQuantity = orders.reduce(
     (sum, order) => sum + (order.quantity || 1),
     0,
   );
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (cartRef.current && !cartRef.current.contains(e.target)) {
-        setCartOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [setCartOpen]);
 
   return (
     <header id="header">
@@ -51,17 +35,15 @@ export default function Header({
           setCartOpen={setCartOpen}
           totalQuantity={totalQuantity}
         />
-
-        {cartOpen && (
-          <div className="shop-cart" ref={cartRef}>
-            <CartDropdown
-              orders={orders}
-              onDelete={onDelete}
-              onClose={() => setCartOpen(false)}
-            />
-          </div>
-        )}
       </div>
+
+      {cartOpen && (
+        <CartDropdown
+          orders={orders}
+          onDelete={onDelete}
+          onClose={() => setCartOpen(false)}
+        />
+      )}
     </header>
   );
 }

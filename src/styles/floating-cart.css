@@ -1,61 +1,87 @@
 .floating-cart {
   position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 9999;
-  background: var(--capuccino-color);
-  color: var(--peony-color);
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  display: flex;
+  right: 22px;
+  bottom: 22px;
+  z-index: 999;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 0 18px 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(30, 21, 28, 0.12);
+  background: rgba(255, 255, 255, 0.96);
+  color: #1e151c;
+  box-shadow: 0 18px 34px rgba(30, 21, 28, 0.14);
+  backdrop-filter: blur(8px);
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transition:
-    color,
-    transform var(--transition);
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 .floating-cart:hover {
-  transform: scale(1.2);
+  transform: translateY(-3px);
+  background: #1e151c;
+  color: #ffffff;
+  border-color: #1e151c;
+  box-shadow: 0 22px 38px rgba(30, 21, 28, 0.2);
 }
 
-.floating-cart svg {
-  color: var(--peony-color);
-  width: 24px;
-  height: 24px;
-  transition:
-    color,
-    transform var(--transition);
+.floating-cart-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
 }
 
-.floating-cart:hover svg {
-  color: var(--primary-color);
-  transform: scale(1.2);
+.floating-cart-text {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .floating-cart .cart-count {
-  position: absolute;
-  top: -5px;
-  right: -5px;
+  position: static;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
   background: var(--primary-color);
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 10px;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.floating-cart:hover .cart-count {
+  background: #ffffff;
+  color: #1e151c;
 }
 
 @media (max-width: 767px) {
   .floating-cart {
-    width: 45px;
-    height: 45px;
+    right: 14px;
+    bottom: 14px;
+    min-height: 50px;
+    padding: 0 14px;
+    gap: 8px;
+  }
+
+  .floating-cart-text {
+    font-size: 11px;
+  }
+
+  .floating-cart-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .floating-cart .cart-count {
+    min-width: 20px;
+    height: 20px;
+    font-size: 10px;
   }
 }

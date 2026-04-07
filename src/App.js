@@ -12,16 +12,36 @@ import FloatingCart from "./components/cart/FloatingCart";
 class App extends React.Component {
   constructor(props) {
     super(props);
+
     this.state = {
       orders: [],
       items: products,
       currentItems: products,
+
       showFullItem: false,
       fullItem: null,
+
       showFloatingCart: true,
       cartOpen: false,
-      searchQuery: "",
+
+      selectedCategory: "all",
+      selectedSubcategory: "all",
+      catalogSearchQuery: "",
     };
+
+    this.catalogSearchTimeout = null;
+  }
+
+  componentDidMount() {
+    window.addEventListener("scroll", this.handleScroll);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("scroll", this.handleScroll);
+
+    if (this.catalogSearchTimeout) {
+      clearTimeout(this.catalogSearchTimeout);
+    }
   }
 
   render() {
@@ -32,25 +52,12 @@ class App extends React.Component {
       fullItem,
       showFloatingCart,
       cartOpen,
+      selectedCategory,
+      selectedSubcategory,
+      catalogSearchQuery,
     } = this.state;
 
     const totalQuantity = this.getTotalQuantity();
-
-    const showItemModal = showFullItem && (
-      <ShowFullItem
-        onAdd={this.addToOrder}
-        item={fullItem}
-        onShowItem={this.onShowItem}
-      />
-    );
-
-    const floatingCartButton = (
-      <FloatingCart
-        totalQuantity={totalQuantity}
-        show={showFloatingCart}
-        onClick={this.handleFloatingCartClick}
-      />
-    );
 
     return (
       <div className="container">
@@ -61,37 +68,47 @@ class App extends React.Component {
           setCartOpen={this.setCartOpen}
           onSearchSubmit={this.handleSearchSubmit}
         />
+
         <main>
           <PresentationBar />
           <BannerSliders />
-          <Categories onChoose={this.handleCategoryFilter} />
+
+          <Categories
+            onChoose={this.handleCategoryFilter}
+            onCatalogSearch={this.handleCatalogSearch}
+            onResetFilters={this.resetCatalogFilters}
+            selectedCategory={selectedCategory}
+            selectedSubcategory={selectedSubcategory}
+            catalogSearchQuery={catalogSearchQuery}
+          />
+
           <Items items={currentItems} onShowItem={this.onShowItem} />
         </main>
 
-        {showItemModal}
+        {showFullItem && (
+          <ShowFullItem
+            item={fullItem}
+            onAdd={this.addToOrder}
+            onShowItem={this.onShowItem}
+          />
+        )}
 
-        {floatingCartButton}
+        <FloatingCart
+          totalQuantity={totalQuantity}
+          show={showFloatingCart}
+          onClick={this.handleFloatingCartClick}
+        />
 
         <Footer />
       </div>
     );
   }
 
-  //============================Lifecycle methods============================//
-
-  componentDidMount = () => {
-    window.addEventListener("scroll", this.handleScroll);
-  };
-
-  componentWillUnmount = () => {
-    window.removeEventListener("scroll", this.handleScroll);
-  };
-
-  //============================UI methods============================//
+  // ============================ UI methods ============================
 
   handleFloatingCartClick = () => {
-    this.scrollToHeader();
     this.onShowItem(null);
+    this.setCartOpen(true);
   };
 
   handleScroll = () => {
@@ -104,18 +121,10 @@ class App extends React.Component {
 
   scrollToItems = () => {
     const section = document.getElementById("items-section");
+
     if (section) {
       section.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  };
-
-  scrollToHeader = () => {
-    const header = document.getElementById("header");
-    if (header) {
-      header.scrollIntoView({ behavior: "smooth" });
-    }
-
-    this.setState({ cartOpen: true });
   };
 
   onShowItem = (item) => {
@@ -129,22 +138,23 @@ class App extends React.Component {
     this.setState({ cartOpen: value });
   };
 
-  //============================Search and filtering methods============================//
+  // ============================ Header search ============================
 
   handleSearchSubmit = (query) => {
-    const normalizedQuery = query.trim().toLowerCase();
+    const normalizedQuery = (query || "").trim().toLowerCase();
+    const { items } = this.state;
 
     if (!normalizedQuery) {
       this.setState(
         {
-          currentItems: this.state.items,
+          currentItems: items,
         },
         this.scrollToItems,
       );
       return;
     }
 
-    const filteredItems = this.state.items.filter((item) => {
+    const filteredItems = items.filter((item) => {
       const title = item.title?.toLowerCase() || "";
       const shortDescription = item.shortDescription?.toLowerCase() || "";
       const description = item.description?.toLowerCase() || "";
@@ -168,30 +178,109 @@ class App extends React.Component {
     );
   };
 
-  handleCategoryFilter = (category, subcategory = null) => {
-    const { items } = this.state;
+  // ============================ Catalog filters ============================
 
-    if (category === "all") {
-      this.setState({ currentItems: items });
-      return;
+  applyCatalogFilters = ({
+    category = this.state.selectedCategory,
+    subcategory = this.state.selectedSubcategory,
+    searchQuery = this.state.catalogSearchQuery,
+  } = {}) => {
+    const { items } = this.state;
+    const normalizedQuery = (searchQuery || "").trim().toLowerCase();
+
+    let filteredItems = [...items];
+
+    if (category !== "all") {
+      filteredItems = filteredItems.filter(
+        (item) => item.category === category,
+      );
     }
 
-    if (subcategory && !subcategory.startsWith("all-")) {
-      this.setState({
-        currentItems: items.filter(
-          (item) =>
-            item.category === category && item.subcategory === subcategory,
-        ),
+    if (
+      subcategory &&
+      subcategory !== "all" &&
+      !subcategory.startsWith("all-")
+    ) {
+      filteredItems = filteredItems.filter(
+        (item) => item.subcategory === subcategory,
+      );
+    }
+
+    if (normalizedQuery) {
+      filteredItems = filteredItems.filter((item) => {
+        const title = item.title?.toLowerCase() || "";
+        const shortDescription = item.shortDescription?.toLowerCase() || "";
+        const description = item.description?.toLowerCase() || "";
+        const brand = item.brand?.toLowerCase() || "";
+        const sku = item.sku?.toLowerCase() || "";
+
+        return (
+          title.includes(normalizedQuery) ||
+          shortDescription.includes(normalizedQuery) ||
+          description.includes(normalizedQuery) ||
+          brand.includes(normalizedQuery) ||
+          sku.includes(normalizedQuery)
+        );
       });
-      return;
     }
 
     this.setState({
-      currentItems: items.filter((item) => item.category === category),
+      currentItems: filteredItems,
+      selectedCategory: category,
+      selectedSubcategory: subcategory || "all",
+      catalogSearchQuery: searchQuery || "",
     });
   };
 
-  //============================Cart methods============================//
+  handleCategoryFilter = (category, subcategory = "all") => {
+    this.applyCatalogFilters({
+      category,
+      subcategory,
+      searchQuery: this.state.catalogSearchQuery,
+    });
+
+    requestAnimationFrame(() => {
+      this.scrollToItems();
+    });
+  };
+
+  handleCatalogSearch = (query) => {
+    const safeQuery = query || "";
+
+    this.setState({
+      catalogSearchQuery: safeQuery,
+    });
+
+    if (this.catalogSearchTimeout) {
+      clearTimeout(this.catalogSearchTimeout);
+    }
+
+    this.catalogSearchTimeout = setTimeout(() => {
+      this.applyCatalogFilters({
+        category: this.state.selectedCategory,
+        subcategory: this.state.selectedSubcategory,
+        searchQuery: safeQuery,
+      });
+    }, 250);
+  };
+
+  resetCatalogFilters = () => {
+    if (this.catalogSearchTimeout) {
+      clearTimeout(this.catalogSearchTimeout);
+    }
+
+    this.applyCatalogFilters({
+      category: "all",
+      subcategory: "all",
+      searchQuery: "",
+    });
+
+    requestAnimationFrame(() => {
+      this.scrollToItems();
+    });
+  };
+
+  // ============================ Cart methods ============================
 
   addToOrder = (item) => {
     this.setState((prevState) => {
@@ -211,11 +300,13 @@ class App extends React.Component {
               ? { ...order, quantity: (order.quantity || 1) + 1 }
               : order,
           ),
+          cartOpen: true,
         };
       }
 
       return {
         orders: [...prevState.orders, { ...item, quantity: 1 }],
+        cartOpen: true,
       };
     });
   };
@@ -234,7 +325,7 @@ class App extends React.Component {
     }));
   };
 
-  //============================Other methods============================//
+  // ============================ Helpers ============================
 
   getTotalQuantity = () => {
     const { orders } = this.state;

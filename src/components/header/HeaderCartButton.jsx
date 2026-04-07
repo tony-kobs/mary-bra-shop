@@ -8,11 +8,11 @@ export default function HeaderCartButton({
   return (
     <button
       type="button"
-      className="shop-cart-button"
-      onClick={() => setCartOpen((prev) => !prev)}
+      className={`shop-cart-button ${cartOpen ? "active" : ""}`}
+      onClick={() => setCartOpen(true)}
       aria-label="Відкрити кошик"
     >
-      <FaBagShopping className={`shop-cart-icon ${cartOpen ? "active" : ""}`} />
+      <FaBagShopping className="shop-cart-icon" />
       {totalQuantity > 0 && <span className="cart-count">{totalQuantity}</span>}
     </button>
   );

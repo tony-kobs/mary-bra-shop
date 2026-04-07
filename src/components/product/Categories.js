@@ -1,112 +1,103 @@
-import React, { useMemo, useState } from "react";
-import {
-  FaAngleDown,
-  FaAngleUp,
-  FaMagnifyingGlass,
-  FaXmark,
-} from "react-icons/fa6";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { FaAngleDown, FaAngleUp, FaXmark } from "react-icons/fa6";
 import { categoriesData } from "../../data/categories.js";
 
 export default function Categories({
   onChoose,
-  onCatalogSearch,
-  onResetFilters,
   selectedCategory,
   selectedSubcategory,
-  catalogSearchQuery,
 }) {
   const [openCategory, setOpenCategory] = useState(null);
+  const categoriesRef = useRef(null);
 
-  const hasActiveFilters =
-    selectedCategory !== "all" ||
-    selectedSubcategory !== "all" ||
-    catalogSearchQuery.trim() !== "";
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        categoriesRef.current &&
+        !categoriesRef.current.contains(event.target)
+      ) {
+        setOpenCategory(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const selectedCategoryData = useMemo(() => {
     return categoriesData.find((cat) => cat.key === selectedCategory) || null;
   }, [selectedCategory]);
 
-  const selectedSubcategoryName = useMemo(() => {
-    if (!selectedCategoryData || selectedSubcategory === "all") return "";
+  const selectedSubcategoryData = useMemo(() => {
+    if (!selectedCategoryData || selectedSubcategory === "all") return null;
 
-    const foundSubcategory = selectedCategoryData.subcategories?.find(
-      (sub) => sub.key === selectedSubcategory,
+    return (
+      selectedCategoryData.subcategories?.find(
+        (sub) => sub.key === selectedSubcategory,
+      ) || null
     );
-
-    return foundSubcategory?.name || "";
   }, [selectedCategoryData, selectedSubcategory]);
 
-  const handleCategoryClick = (cat) => {
-    if (cat.key === "all") {
+  const handleCategoryClick = (categoryKey, hasSubcategories) => {
+    if (categoryKey === "all") {
       setOpenCategory(null);
-      onChoose("all", "all");
+      onChoose?.("all", "all");
       return;
     }
 
-    if (!cat.subcategories?.length) {
-      setOpenCategory(null);
-      onChoose(cat.key, "all");
+    if (!hasSubcategories) {
+      setOpenCategory((prev) => (prev === categoryKey ? null : categoryKey));
       return;
     }
 
-    setOpenCategory((prev) => (prev === cat.key ? null : cat.key));
-    onChoose(cat.key, "all");
+    setOpenCategory((prev) => (prev === categoryKey ? null : categoryKey));
   };
 
   const handleSubcategoryClick = (categoryKey, subcategoryKey) => {
-    onChoose(categoryKey, subcategoryKey);
+    onChoose?.(categoryKey, subcategoryKey);
+    setOpenCategory(null);
   };
 
-  const handleSearchChange = (e) => {
-    onCatalogSearch(e.target.value);
+  const handleResetAll = () => {
+    onChoose?.("all", "all");
+    setOpenCategory(null);
   };
+
+  const handleClearCategory = () => {
+    onChoose?.("all", "all");
+    setOpenCategory(null);
+  };
+
+  const handleClearSubcategory = () => {
+    if (selectedCategory && selectedCategory !== "all") {
+      onChoose?.(selectedCategory, "all");
+    }
+    setOpenCategory(null);
+  };
+
+  const hasSelectedFilters =
+    selectedCategory !== "all" || selectedSubcategory !== "all";
 
   return (
     <section className="catalog-filters">
       <div className="catalog-filters__top">
         <div className="catalog-filters__heading">
           <span className="catalog-filters__label">MaryBra Shop</span>
-          <h2 className="catalog-filters__title">Каталог білизни</h2>
-        </div>
-
-        <div className="catalog-filters__controls">
-          <div className="catalog-search">
-            <FaMagnifyingGlass className="catalog-search__icon" />
-
-            <input
-              type="text"
-              className="catalog-search__input"
-              placeholder="Пошук у каталозі..."
-              value={catalogSearchQuery}
-              onChange={handleSearchChange}
-            />
-
-            {catalogSearchQuery.trim() && (
-              <button
-                type="button"
-                className="catalog-search__clear"
-                onClick={() => onCatalogSearch("")}
-                aria-label="Очистити пошук у каталозі"
-              >
-                <FaXmark />
-              </button>
-            )}
-          </div>
-
-          <button
-            type="button"
-            className={`catalog-reset-btn ${hasActiveFilters ? "active" : ""}`}
-            onClick={onResetFilters}
-          >
-            Скинути фільтри
-          </button>
+          <h2 className="catalog-filters__title">Категорії білизни</h2>
         </div>
       </div>
 
-      <div className="categories">
+      <div className="categories" ref={categoriesRef}>
         {categoriesData.map((cat) => {
           const isOpen = openCategory === cat.key;
           const isActiveCategory = selectedCategory === cat.key;
+          const hasSubcategories = Array.isArray(cat.subcategories)
+            ? cat.subcategories.length > 0
+            : false;
+          const showArrow = cat.key !== "all";
 
           return (
             <div
@@ -116,18 +107,18 @@ export default function Categories({
               <button
                 type="button"
                 className={`category ${isActiveCategory ? "active" : ""}`}
-                onClick={() => handleCategoryClick(cat)}
+                onClick={() => handleCategoryClick(cat.key, hasSubcategories)}
               >
                 <span>{cat.name}</span>
 
-                {cat.subcategories?.length > 0 && cat.key !== "all" && (
+                {showArrow && (
                   <span className="category-arrow">
                     {isOpen ? <FaAngleUp /> : <FaAngleDown />}
                   </span>
                 )}
               </button>
 
-              {isOpen && cat.subcategories?.length > 0 && (
+              {isOpen && hasSubcategories && (
                 <div className="subcategories-dropdown">
                   {cat.subcategories.map((sub) => {
                     const isActiveSubcategory =
@@ -153,23 +144,41 @@ export default function Categories({
         })}
       </div>
 
-      {hasActiveFilters && (
+      {hasSelectedFilters && (
         <div className="catalog-current-state">
+          <button
+            type="button"
+            className="catalog-current-state__reset"
+            onClick={handleResetAll}
+          >
+            Скинути все
+          </button>
+
           {selectedCategoryData && selectedCategory !== "all" && (
             <span className="catalog-current-state__item">
               Категорія: <strong>{selectedCategoryData.name}</strong>
+              <button
+                type="button"
+                className="catalog-current-state__clear"
+                onClick={handleClearCategory}
+                aria-label="Скинути категорію"
+              >
+                <FaXmark />
+              </button>
             </span>
           )}
 
-          {selectedSubcategoryName && (
+          {selectedSubcategoryData && (
             <span className="catalog-current-state__item">
-              Підкатегорія: <strong>{selectedSubcategoryName}</strong>
-            </span>
-          )}
-
-          {catalogSearchQuery.trim() && (
-            <span className="catalog-current-state__item">
-              Пошук: <strong>{catalogSearchQuery}</strong>
+              Підкатегорія: <strong>{selectedSubcategoryData.name}</strong>
+              <button
+                type="button"
+                className="catalog-current-state__clear"
+                onClick={handleClearSubcategory}
+                aria-label="Скинути підкатегорію"
+              >
+                <FaXmark />
+              </button>
             </span>
           )}
         </div>

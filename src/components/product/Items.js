@@ -4,7 +4,11 @@ import Item from "./Item";
 const PAGINATION_THRESHOLD = 100;
 const ITEMS_PER_PAGE = 16;
 
-export default function Items({ items = [], onShowItem }) {
+export default function Items({
+  items = [],
+  onShowItem,
+  filterSidebar = null,
+}) {
   const [currentPage, setCurrentPage] = useState(1);
 
   const isPaginationEnabled = items.length > PAGINATION_THRESHOLD;
@@ -70,88 +74,98 @@ export default function Items({ items = [], onShowItem }) {
     }
   };
 
-  if (!items.length) {
-    return (
-      <div className="items-empty" id="items-section">
-        <p>Нічого не знайдено</p>
-        <span>Спробуй змінити пошук або категорію</span>
-      </div>
-    );
-  }
-
   return (
     <section className="catalog-products-section" id="items-section">
-      <div className="catalog-products-top">
-        <div className="catalog-products-top__info">
-          <span className="catalog-products-top__label">MaryBra Selection</span>
-          <h2 className="catalog-products-top__title">Вибрані моделі</h2>
-        </div>
+      <div className="catalog-layout">
+        <div className="catalog-layout__sidebar">{filterSidebar}</div>
 
-        <div className="catalog-products-top__meta">
-          <span className="catalog-products-top__count">
-            Всього товарів: <strong>{items.length}</strong>
-          </span>
+        <div className="catalog-layout__content">
+          {!items.length ? (
+            <div className="items-empty">
+              <p>Нічого не знайдено</p>
+              <span>Спробуй змінити фільтр або категорію</span>
+            </div>
+          ) : (
+            <>
+              <div className="catalog-products-top">
+                <div className="catalog-products-top__info">
+                  <span className="catalog-products-top__label">
+                    MaryBra Selection
+                  </span>
+                  <h2 className="catalog-products-top__title">
+                    Вибрані моделі
+                  </h2>
+                </div>
 
-          {isPaginationEnabled && (
-            <span className="catalog-products-top__count">
-              Сторінка <strong>{currentPage}</strong> з{" "}
-              <strong>{totalPages}</strong>
-            </span>
+                <div className="catalog-products-top__meta">
+                  <span className="catalog-products-top__count">
+                    Всього товарів: <strong>{items.length}</strong>
+                  </span>
+
+                  {isPaginationEnabled && (
+                    <span className="catalog-products-top__count">
+                      Сторінка <strong>{currentPage}</strong> з{" "}
+                      <strong>{totalPages}</strong>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="items-wrapper">
+                {visibleItems.map((item) => (
+                  <Item key={item.id} item={item} onShowItem={onShowItem} />
+                ))}
+              </div>
+
+              {isPaginationEnabled && (
+                <div className="catalog-pagination">
+                  <button
+                    type="button"
+                    className="catalog-pagination__nav"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    Назад
+                  </button>
+
+                  <div className="catalog-pagination__pages">
+                    {paginationNumbers.map((page, index) =>
+                      page === "..." ? (
+                        <span
+                          key={`dots-${index}`}
+                          className="catalog-pagination__dots"
+                        >
+                          ...
+                        </span>
+                      ) : (
+                        <button
+                          key={page}
+                          type="button"
+                          className={`catalog-pagination__page ${
+                            currentPage === page ? "active" : ""
+                          }`}
+                          onClick={() => handlePageChange(page)}
+                        >
+                          {page}
+                        </button>
+                      ),
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="catalog-pagination__nav"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    Далі
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
-
-      <div className="items-wrapper">
-        {visibleItems.map((item) => (
-          <Item key={item.id} item={item} onShowItem={onShowItem} />
-        ))}
-      </div>
-
-      {isPaginationEnabled && (
-        <div className="catalog-pagination">
-          <button
-            type="button"
-            className="catalog-pagination__nav"
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            Назад
-          </button>
-
-          <div className="catalog-pagination__pages">
-            {paginationNumbers.map((page, index) =>
-              page === "..." ? (
-                <span
-                  key={`dots-${index}`}
-                  className="catalog-pagination__dots"
-                >
-                  ...
-                </span>
-              ) : (
-                <button
-                  key={page}
-                  type="button"
-                  className={`catalog-pagination__page ${
-                    currentPage === page ? "active" : ""
-                  }`}
-                  onClick={() => handlePageChange(page)}
-                >
-                  {page}
-                </button>
-              ),
-            )}
-          </div>
-
-          <button
-            type="button"
-            className="catalog-pagination__nav"
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-          >
-            Далі
-          </button>
-        </div>
-      )}
     </section>
   );
 }

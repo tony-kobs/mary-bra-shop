@@ -62,6 +62,7 @@ body {
 @import url("./styles/banner-slider.css");
 @import url("./styles/categories.css");
 @import url("./styles/items.css");
+@import url("./styles/filter-product.css");
 @import url("./styles/show-full-item.css");
 @import url("./styles/floating-cart.css");
 @import url("./styles/order.css");

@@ -4,10 +4,19 @@ import products from "./data/products.js";
 import Footer from "./components/layout/Footer";
 import Items from "./components/product/Items";
 import Categories from "./components/product/Categories";
+import FilterProduct from "./components/product/FilterProduct";
 import ShowFullItem from "./components/product/ShowFullItem";
 import BannerSliders from "./components/layout/BannerSliders";
 import PresentationBar from "./components/layout/PresentationBar";
 import FloatingCart from "./components/cart/FloatingCart";
+
+const defaultFilters = {
+  brand: "all",
+  category: "all",
+  subcategory: "all",
+  color: "all",
+  size: "all",
+};
 
 class App extends React.Component {
   constructor(props) {
@@ -24,12 +33,9 @@ class App extends React.Component {
       showFloatingCart: true,
       cartOpen: false,
 
-      selectedCategory: "all",
-      selectedSubcategory: "all",
-      catalogSearchQuery: "",
+      filters: defaultFilters,
+      headerSearchQuery: "",
     };
-
-    this.catalogSearchTimeout = null;
   }
 
   componentDidMount() {
@@ -38,10 +44,6 @@ class App extends React.Component {
 
   componentWillUnmount() {
     window.removeEventListener("scroll", this.handleScroll);
-
-    if (this.catalogSearchTimeout) {
-      clearTimeout(this.catalogSearchTimeout);
-    }
   }
 
   render() {
@@ -52,9 +54,7 @@ class App extends React.Component {
       fullItem,
       showFloatingCart,
       cartOpen,
-      selectedCategory,
-      selectedSubcategory,
-      catalogSearchQuery,
+      filters,
     } = this.state;
 
     const totalQuantity = this.getTotalQuantity();
@@ -74,15 +74,23 @@ class App extends React.Component {
           <BannerSliders />
 
           <Categories
-            onChoose={this.handleCategoryFilter}
-            onCatalogSearch={this.handleCatalogSearch}
-            onResetFilters={this.resetCatalogFilters}
-            selectedCategory={selectedCategory}
-            selectedSubcategory={selectedSubcategory}
-            catalogSearchQuery={catalogSearchQuery}
+            onChoose={this.handleCategoryChoose}
+            selectedCategory={filters.category}
+            selectedSubcategory={filters.subcategory}
           />
 
-          <Items items={currentItems} onShowItem={this.onShowItem} />
+          <Items
+            items={currentItems}
+            onShowItem={this.onShowItem}
+            filterSidebar={
+              <FilterProduct
+                items={products}
+                filters={filters}
+                onFilterChange={this.handleFilterChange}
+                onResetFilters={this.resetCatalogFilters}
+              />
+            }
+          />
         </main>
 
         {showFullItem && (
@@ -103,8 +111,6 @@ class App extends React.Component {
       </div>
     );
   }
-
-  // ============================ UI methods ============================
 
   handleFloatingCartClick = () => {
     this.onShowItem(null);
@@ -138,149 +144,128 @@ class App extends React.Component {
     this.setState({ cartOpen: value });
   };
 
-  // ============================ Header search ============================
-
-  handleSearchSubmit = (query) => {
-    const normalizedQuery = (query || "").trim().toLowerCase();
+  getFilteredItems = ({ filters, headerSearchQuery }) => {
     const { items } = this.state;
+    const normalizedHeaderQuery = (headerSearchQuery || "")
+      .trim()
+      .toLowerCase();
 
-    if (!normalizedQuery) {
-      this.setState(
-        {
-          currentItems: items,
-        },
-        this.scrollToItems,
-      );
-      return;
-    }
-
-    const filteredItems = items.filter((item) => {
+    return items.filter((item) => {
       const title = item.title?.toLowerCase() || "";
       const shortDescription = item.shortDescription?.toLowerCase() || "";
       const description = item.description?.toLowerCase() || "";
       const brand = item.brand?.toLowerCase() || "";
       const sku = item.sku?.toLowerCase() || "";
+      const itemColors = Object.keys(item.colors || {});
+      const itemSizes = Array.isArray(item.sizes)
+        ? item.sizes.filter((size) => size.available).map((size) => size.value)
+        : [];
+
+      const matchesBrand =
+        filters.brand === "all" || item.brand === filters.brand;
+      const matchesCategory =
+        filters.category === "all" || item.category === filters.category;
+      const matchesSubcategory =
+        filters.subcategory === "all" ||
+        item.subcategory === filters.subcategory;
+      const matchesColor =
+        filters.color === "all" || itemColors.includes(filters.color);
+      const matchesSize =
+        filters.size === "all" || itemSizes.includes(filters.size);
+      const matchesHeaderSearch =
+        !normalizedHeaderQuery ||
+        title.includes(normalizedHeaderQuery) ||
+        shortDescription.includes(normalizedHeaderQuery) ||
+        description.includes(normalizedHeaderQuery) ||
+        brand.includes(normalizedHeaderQuery) ||
+        sku.includes(normalizedHeaderQuery);
 
       return (
-        title.includes(normalizedQuery) ||
-        shortDescription.includes(normalizedQuery) ||
-        description.includes(normalizedQuery) ||
-        brand.includes(normalizedQuery) ||
-        sku.includes(normalizedQuery)
+        matchesBrand &&
+        matchesCategory &&
+        matchesSubcategory &&
+        matchesColor &&
+        matchesSize &&
+        matchesHeaderSearch
       );
     });
+  };
+
+  applyFilters = (
+    nextFilters,
+    nextHeaderSearchQuery = this.state.headerSearchQuery,
+  ) => {
+    const filteredItems = this.getFilteredItems({
+      filters: nextFilters,
+      headerSearchQuery: nextHeaderSearchQuery,
+    });
+
+    this.setState({
+      filters: nextFilters,
+      headerSearchQuery: nextHeaderSearchQuery,
+      currentItems: filteredItems,
+    });
+  };
+
+  handleSearchSubmit = (query) => {
+    const safeQuery = query || "";
 
     this.setState(
-      {
-        currentItems: filteredItems,
-      },
+      (prevState) => ({
+        headerSearchQuery: safeQuery,
+        currentItems: this.getFilteredItems({
+          filters: prevState.filters,
+          headerSearchQuery: safeQuery,
+        }),
+      }),
       this.scrollToItems,
     );
   };
 
-  // ============================ Catalog filters ============================
-
-  applyCatalogFilters = ({
-    category = this.state.selectedCategory,
-    subcategory = this.state.selectedSubcategory,
-    searchQuery = this.state.catalogSearchQuery,
-  } = {}) => {
-    const { items } = this.state;
-    const normalizedQuery = (searchQuery || "").trim().toLowerCase();
-
-    let filteredItems = [...items];
-
-    if (category !== "all") {
-      filteredItems = filteredItems.filter(
-        (item) => item.category === category,
-      );
-    }
-
-    if (
-      subcategory &&
-      subcategory !== "all" &&
-      !subcategory.startsWith("all-")
-    ) {
-      filteredItems = filteredItems.filter(
-        (item) => item.subcategory === subcategory,
-      );
-    }
-
-    if (normalizedQuery) {
-      filteredItems = filteredItems.filter((item) => {
-        const title = item.title?.toLowerCase() || "";
-        const shortDescription = item.shortDescription?.toLowerCase() || "";
-        const description = item.description?.toLowerCase() || "";
-        const brand = item.brand?.toLowerCase() || "";
-        const sku = item.sku?.toLowerCase() || "";
-
-        return (
-          title.includes(normalizedQuery) ||
-          shortDescription.includes(normalizedQuery) ||
-          description.includes(normalizedQuery) ||
-          brand.includes(normalizedQuery) ||
-          sku.includes(normalizedQuery)
-        );
-      });
-    }
-
-    this.setState({
-      currentItems: filteredItems,
-      selectedCategory: category,
-      selectedSubcategory: subcategory || "all",
-      catalogSearchQuery: searchQuery || "",
-    });
-  };
-
-  handleCategoryFilter = (category, subcategory = "all") => {
-    this.applyCatalogFilters({
+  handleCategoryChoose = (category, subcategory = "all") => {
+    const nextFilters = {
+      ...this.state.filters,
       category,
       subcategory,
-      searchQuery: this.state.catalogSearchQuery,
-    });
+    };
+
+    this.applyFilters(nextFilters);
 
     requestAnimationFrame(() => {
       this.scrollToItems();
     });
   };
 
-  handleCatalogSearch = (query) => {
-    const safeQuery = query || "";
+  handleFilterChange = (field, value) => {
+    this.setState((prevState) => {
+      const nextFilters = {
+        ...prevState.filters,
+        [field]: value,
+      };
 
-    this.setState({
-      catalogSearchQuery: safeQuery,
-    });
+      if (field === "category") {
+        nextFilters.subcategory = "all";
+      }
 
-    if (this.catalogSearchTimeout) {
-      clearTimeout(this.catalogSearchTimeout);
-    }
-
-    this.catalogSearchTimeout = setTimeout(() => {
-      this.applyCatalogFilters({
-        category: this.state.selectedCategory,
-        subcategory: this.state.selectedSubcategory,
-        searchQuery: safeQuery,
+      const filteredItems = this.getFilteredItems({
+        filters: nextFilters,
+        headerSearchQuery: prevState.headerSearchQuery,
       });
-    }, 250);
+
+      return {
+        filters: nextFilters,
+        currentItems: filteredItems,
+      };
+    });
   };
 
   resetCatalogFilters = () => {
-    if (this.catalogSearchTimeout) {
-      clearTimeout(this.catalogSearchTimeout);
-    }
-
-    this.applyCatalogFilters({
-      category: "all",
-      subcategory: "all",
-      searchQuery: "",
-    });
+    this.applyFilters(defaultFilters, "");
 
     requestAnimationFrame(() => {
       this.scrollToItems();
     });
   };
-
-  // ============================ Cart methods ============================
 
   addToOrder = (item) => {
     this.setState((prevState) => {
@@ -324,8 +309,6 @@ class App extends React.Component {
         .filter((order) => order.quantity > 0),
     }));
   };
-
-  // ============================ Helpers ============================
 
   getTotalQuantity = () => {
     const { orders } = this.state;
